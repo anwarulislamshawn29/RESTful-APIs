@@ -39,7 +39,7 @@ export class ApiConfigService {
       database: this.configService.get('DB_DATABASE'),
       port: this.configService.get('DB_PORT'),
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     };
   }
 }

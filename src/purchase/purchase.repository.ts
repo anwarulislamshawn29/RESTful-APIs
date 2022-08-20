@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, getConnection, getRepository } from 'typeorm';
+import { EntityRepository, Repository } from 'typeorm';
 
 import { PaymentHistory } from './entities/paymentHistory.entity';
 

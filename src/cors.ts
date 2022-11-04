@@ -2,18 +2,9 @@ import { ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 const whitelist = {
-  development: [
-    '*',
-    'http://localhost:3000'
-  ],
-  staging: [
-    '*',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-  ],
-  production: [
-    '*'
-  ],
+  development: ['*', 'http://localhost:3000'],
+  staging: ['*', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  production: ['*'],
 };
 
 const env = new ConfigService().get('ENV');

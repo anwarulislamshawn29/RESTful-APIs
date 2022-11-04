@@ -4,12 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { configValidationSchema } from './config.schema';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { SharedModule } from './shared/shared.module';
-import { RestaurantModule } from './restaurents/restaurants.module';
-import { TopRestaurantModule } from './top-restaurents/top-restaurents.module';
 import { PurchaseModule } from './purchase/purchase.module';
-import { MenuModule } from './restaurents/menu/menu.module';
-import { OpeningHoursModule } from './restaurents/opening-hours/opening-hours.module';
-import { UserModule } from './purchase/user/user.module';
+import { ProductModule } from './product/product.module';
+import { InventoryModule } from './product/inventory/inventory.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,13 +19,10 @@ import { UserModule } from './purchase/user/user.module';
       useFactory: async (configService: ApiConfigService) =>
         configService.typeOrmConfig,
     }),
-    RestaurantModule,
-    TopRestaurantModule,
     PurchaseModule,
-    MenuModule,
-    OpeningHoursModule,
-    UserModule
+    ProductModule,
+    InventoryModule,
   ],
   controllers: [],
 })
-export class AppModule { }
+export class AppModule {}

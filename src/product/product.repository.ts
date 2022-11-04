@@ -1,0 +1,231 @@
+import { NotFoundException } from '@nestjs/common';
+import { ListParametersDto } from '../shared/dto/list-parameters.dto';
+import {
+  EntityRepository,
+  getConnection,
+  getManager,
+  getRepository,
+  In,
+  Repository,
+} from 'typeorm';
+import { CreateInventoryDto } from './inventory/dto/create-inventory.dto';
+import { CreateProductDto } from './dto/create-product.dto';
+import { ResponseCreateInventoryDto } from './dto/response-create-inventory.dto';
+import { ResponseCreateProductDto } from './dto/response-create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { Inventory } from './inventory/entities/inventory.entity';
+import { Product } from './entities/product.entity';
+
+@EntityRepository(Product)
+export class ProductRepository extends Repository<Product> {
+  async createProduct(
+    createProductDto: CreateProductDto,
+    code: string,
+  ): Promise<ResponseCreateProductDto> {
+    let product: ResponseCreateProductDto;
+    try {
+      product = this.create({
+        name: createProductDto.name,
+        brandName: createProductDto.brandName,
+        code,
+        inventoryStatus: createProductDto.inventoryStatus,
+        price: createProductDto.price,
+        createdBy: createProductDto.createdBy,
+        updatedBy: createProductDto.createdBy,
+      });
+
+      await this.save(product);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return product;
+  }
+
+  async findProductListByIds(productIds: any) {
+    try {
+      const Ids = productIds.toString().split(',');
+      const products = getRepository(Product)
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.inventory', 'inventory')
+        .where({
+          id: In(Ids),
+        });
+      products.andWhere('product.inventoryStatus= :value', {
+        value: 'available',
+      });
+      return await products.getMany();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async findAProduct(id: string) {
+    try {
+      const products = getRepository(Product)
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.inventory', 'inventory')
+        .where({
+          id: id,
+        });
+      products.andWhere('inventory.availableQty >= :value', {
+        value: 0,
+      });
+      return await products.getOne();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
+
+  async findInventoryByProductId(productId: string) {
+    let inventory: Inventory;
+    try {
+      inventory = await getManager()
+        .createQueryBuilder(Inventory, 'inventory')
+        .where('inventory.productId = :productId', { productId })
+        .getOne();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return inventory;
+  }
+
+  async findInventoryById(id: string) {
+    let inventory: Inventory;
+    try {
+      inventory = await getManager()
+        .createQueryBuilder(Inventory, 'inventory')
+        .where('inventory.id = :id', { id })
+        .getOne();
+      if (!inventory) {
+        throw new NotFoundException(`No inventory found with id "${id}"`);
+      }
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return inventory;
+  }
+
+  async findProductList(
+    listParametersDto: ListParametersDto,
+  ): Promise<[Product[], number]> {
+    let result: any;
+    try {
+      const qb = getRepository(Product)
+        .createQueryBuilder('product')
+        .leftJoinAndSelect('product.inventory', 'inventory')
+        .select([
+          'product.id',
+          'product.name',
+          'product.brandName',
+          'product.code',
+          'product.price',
+          'product.updated',
+          'product.createdBy',
+          'inventory.id',
+          'inventory.totalQty',
+          'inventory.availableQty',
+        ]);
+      if (listParametersDto.q) {
+        const query = listParametersDto.q.toLowerCase();
+        qb.where(
+          'LOWER(product.name) LiKE :query OR LOWER(product.brandName) LiKE :query OR LOWER(product.code) LiKE :query',
+          {
+            query: `%${query}%`,
+          },
+        );
+      }
+
+      if (listParametersDto.offset) {
+        qb.offset(listParametersDto.offset);
+      }
+
+      if (listParametersDto.limit) {
+        qb.limit(listParametersDto.limit);
+      }
+
+      if (listParametersDto.sort) {
+        let sort = listParametersDto.sort;
+        if (sort.match(/\-[a-z]+/)) {
+          sort = sort.replace(/\-/, '');
+          qb.orderBy(`${sort}`, 'DESC');
+        } else {
+          qb.orderBy(`${sort}`, 'ASC');
+        }
+      }
+
+      result = await qb.getManyAndCount();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return result;
+  }
+
+  async updateProduct(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    let updatedProduct: Product;
+    try {
+      const product = await this.findAProduct(id);
+      if (!product) {
+        throw new NotFoundException(`No product found with productId "${id}"`);
+      }
+      const { name, brandName, price, inventoryStatus } = updateProductDto;
+
+      updatedProduct = this.create({
+        id: product.id,
+        name,
+        brandName,
+        price,
+        inventoryStatus,
+      });
+
+      await this.save(updatedProduct);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return updatedProduct;
+  }
+  async createInventory(
+    createInventoryDto: CreateInventoryDto,
+  ): Promise<ResponseCreateInventoryDto> {
+    const inventory = {
+      totalQty: createInventoryDto.totalQty,
+      availableQty: createInventoryDto.totalQty,
+      createdBy: createInventoryDto.createdBy,
+      productId: createInventoryDto.productId,
+    };
+    let inventories: any;
+    try {
+      inventories = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Inventory)
+        .values(inventory)
+        .execute()
+        .then((response) => response.raw[0]);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    const result = {
+      productId: inventories.id,
+      created: inventories.created,
+      updated: inventories.updated,
+    };
+    return result;
+  }
+  async deleteProduct(id: string) {
+    let result;
+    try {
+      result = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Product)
+        .where('id = :id', { id })
+        .execute();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return result.affected;
+  }
+}

@@ -1,33 +1,56 @@
-
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsDefined,
+  IsEnum,
+  IsNumber,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
+import { PurchaseEnum } from '../enum/purchase-status.enum';
+import { RequestBodyProductDto } from './request-body-product.dto';
 
 export class CreatePurchaseDto {
 
-  @ApiProperty({
-    type: String,
-    example: 'Mr. xyz',
-    description: 'User name/ Customer name!',
-  })
-  name: string;
+  @ApiProperty({ type: [RequestBodyProductDto] })
+  productList: RequestBodyProductDto[];
 
   @ApiProperty({
     type: String,
-    example: 'Watercress',
-    description: 'Name of the dish, which a user wants to purchase',
+    enum: PurchaseEnum,
+    default: PurchaseEnum.COMPLETED,
   })
-  dishName: string;
-
-  @ApiProperty({
-    type: String,
-    example: 'restaurant',
-    description: 'Name of the restaurant, From which a user wants to purchase',
-  })
-  restaurantName: string;
+  @IsDefined()
+  @IsEnum(PurchaseEnum)
+  status: string;
 
   @ApiProperty({
     type: Number,
-    example: 10.00,
-    description: 'The transection amount',
+    description: 'Discount in percentage.',
   })
-  transactionAmount: number;
+  @IsDefined()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  discountInPercentage: number;
+
+  @ApiProperty({
+    type: Number,
+    description: 'VAT in percentage.',
+  })
+  @IsDefined()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  vatInPercentage: number;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'uuid',
+    description: 'Created by.',
+  })
+  @IsDefined()
+  @IsUUID()
+  createdBy: string;
 }

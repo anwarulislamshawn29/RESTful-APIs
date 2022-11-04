@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Restaurant } from '../../restaurents/entities/restaurants.entity';
-import { PaymentHistory } from '../../purchase/entities/paymentHistory.entity';
-import { User } from '../../purchase/user/entities/user.entity';
-import { DishInventory } from '../../restaurents/entities/dish-inventory.entity';
-import { Menu } from '../../restaurents/menu/entities/menu.entity';
-import { OpeningHours } from '../../restaurents/opening-hours/entities/openingHours.entity';
-
-
+import { Inventory } from '../../product/inventory/entities/inventory.entity';
+import { Product } from '../../product/entities/product.entity';
+import { Customer } from '../../purchase/entities/customer.entity';
+import { SoldProduct } from '../../purchase/entities/soldProduct.entity';
+import { Purchase } from '../../purchase/entities/purchase.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -16,14 +13,7 @@ export class ApiConfigService {
 
   get typeOrmConfig(): TypeOrmModuleOptions {
     const migrations = [__dirname + '/../database/migrations/*{.ts,.js}'];
-    const entities = [
-      Restaurant,
-      Menu,
-      OpeningHours,
-      PaymentHistory,
-      User,
-      DishInventory,
-    ];
+    const entities = [Product, Inventory, Purchase, Customer, SoldProduct];
     const isProduction = this.configService.get('STAGE') === 'prod';
     return {
       ssl: isProduction,

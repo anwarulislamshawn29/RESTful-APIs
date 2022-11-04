@@ -1,182 +1,257 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { PurchaseDto } from './dto/purchase.dto';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PurchaseRepository } from './purchase.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserRepository } from './user/user.repository';
-import { RestaurantRepository } from '../restaurents/restaurants.repository';
-import { MenuRepository } from '../restaurents/menu/menu.repository';
-import { InventoryRepository } from '../restaurents/inventory/inventory.repository';
-import * as moment from 'moment'
-import { NotFoundException } from '@nestjs/common';
-import { getConnection } from 'typeorm';
-import { PurchaseResponseDto } from './dto/purchase.response.dto';
+import { CustomerDto } from './dto/customer.dto';
+import { ResponseCreateCustomerDto } from './dto/response-create-customer.dto';
+import { UpdateCustomerTypeDto } from './dto/update-customer-type.dto';
+import { ListParametersDto } from '../shared/dto/list-parameters.dto';
+import { ResponseCustomersDto } from './dto/response-customers.dto';
+import { UtilsService } from '../shared/services/utils/utils.service';
+import { ResponseACustomerDto } from './dto/response-a-customer.dto';
+import { CreatePurchaseDto } from './dto/create-purchase.dto';
+import { ProductRepository } from '../product/product.repository';
+import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
+import { UpdateInventoryDto } from '../product/dto/update-inventory.dto';
+import { InventoryRepository } from '../product/inventory/inventory.repository';
+import { UpdateProductDto } from '../product/dto/update-product.dto';
+import { InventoryStatusEnum } from '../product/enum/inventory-status.enum';
+import { CodeLengthEnum } from '../shared/enum/code-length.enum';
+import { PrefixProductCode } from '../product/enum/prefix-product-code.enum';
+import { Purchase } from './entities/purchase.entity';
+import { ResponseInvoicesDto } from './dto/response-invoices.dto';
+import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
 
 @Injectable()
 export class PurchaseService {
   constructor(
     @InjectRepository(PurchaseRepository)
     private purchaseRepository: PurchaseRepository,
-    @InjectRepository(UserRepository)
-    private userRepository: UserRepository,
-    @InjectRepository(RestaurantRepository)
-    private restaurantRepository: RestaurantRepository,
-    @InjectRepository(MenuRepository)
-    private menuRepository: MenuRepository,
+    @InjectRepository(ProductRepository)
+    private productRepository: ProductRepository,
     @InjectRepository(InventoryRepository)
     private inventoryRepository: InventoryRepository,
+    private readonly utilsService: UtilsService,
   ) { }
 
-  //This whole block performs a full purchase cycle
-  //Atomic transection implemented
-
   async purchase(
-    purchaseDto: PurchaseDto
-  ): Promise<PurchaseResponseDto> {
-    if (purchaseDto.quantity <= 0) {
-      throw new BadRequestException('Order quantity should be at least 1')
-    }
-    //get user unique id by name
-    const userId = await this.userRepository.getUserIdByUserName(
-      purchaseDto.customerName
-    );
-
-    //get restaurant unique id by user's provided restaurant name
-    let restaurantId; let errorMessage;
-    (userId) ? restaurantId = await this.restaurantRepository.getRetaurantIdByName(
-      purchaseDto.restaurantName
-    ) : errorMessage = 'User not found!'
-    if (errorMessage) {
-      throw new NotFoundException(errorMessage)
-    }
-
-    //get dish id from user's provided dish name
-    const dishId = await this.menuRepository.getDishIdByDishNameAndResId(
-      purchaseDto.dishName,
-      restaurantId
-    );
-
-    //get restaurant id by dish id from menu table, purpuse is to verify (later) the item availabe/not availabe on that restaturant
-    let restaurantIdFromMenuEntity;
-    (dishId) ? restaurantIdFromMenuEntity = await this.menuRepository.getResIdByDishId(
-      dishId
-    ) : errorMessage = 'Item not availabe!'
-
-    if (errorMessage) {
-      throw new NotFoundException(errorMessage)
-    }
-
-    //get restaurant id by dish id from menu table, purpuse is to verify (later) the 
-    const restaurantNameByDishId = await this.restaurantRepository.getRestaurantById(
-      restaurantIdFromMenuEntity[0].menu_restaurantId
-    );
-
-    //if id not same, means this menu/dish item is not availabe at this restaurant
-    if (restaurantIdFromMenuEntity[0].menu_restaurantId !== restaurantId) {
-      throw new NotFoundException(
-        `This item ` + purchaseDto.dishName + ' is not availabe at ' + purchaseDto.restaurantName + ' The item availabe at ' + restaurantNameByDishId.restaurantName,
-      );
-    }
-
-    //get dish inventory in number by dish id
-    const dishInventory = await this.inventoryRepository.getDishInventoryByDishId(dishId)
-
-    //get dish price by dish id
-    const dishPrice = await this.menuRepository.getPriceById(dishId);
-
-    //assigning value
-    purchaseDto.userId = userId;
-    purchaseDto.restaurantId = restaurantId;
-
-    //get Restaurant's cash balance by id
-    const restaurantCashBalance = await this.restaurantRepository.getCashBalanceById(
-      restaurantId
-    );
-
-    //get user's total expences by id
-    const userSpentAmount = await this.userRepository.getSpendAmountByUserId(userId);
-
-    //check inventory is not empty/0
-    if (dishInventory <= 0) {
-      throw new NotFoundException(
-        `This item ` + purchaseDto.dishName + ' is not availabe !!!',
-      );
-    }
-
-    //Checking user's given amount is equal to dish's price (If more or less, User gets a message from else clause)
-    if (dishPrice === purchaseDto.unitPrice) {
-
-      try {
-
-        //Following block updates/adds restaurant's total cash balance as a user purchase a dish and make a payment
-
-        const restaurantDATA = await this.restaurantRepository.getRestaurantById(restaurantId);
-        const convertedCurrentBalance: number = +restaurantCashBalance;
-        const totalTransectionAmount = purchaseDto.unitPrice * purchaseDto.quantity;
-        const newBalance = convertedCurrentBalance + totalTransectionAmount;
-        restaurantDATA.cashBalance = newBalance;
-
-        //Following block addes user's total expanse as user purchase an item
-
-        const userDATA = await this.userRepository.getUserById(userId);
-        const convertedUserSpentAmount: number = +userSpentAmount;
-        const transectionAmount = purchaseDto.unitPrice * purchaseDto.quantity;
-        const updatedSpentAmount = convertedUserSpentAmount + transectionAmount;
-        userDATA.spentAmount = updatedSpentAmount;
-
-        //this block updates inventory number (As user purchase a dish, inventory is duducted)
-        if (dishInventory < purchaseDto.quantity) {
-          throw new BadRequestException('Item not availabe!S');
-        }
-        const inventories = await this.inventoryRepository.getInventoryById(dishId);
-        const newInventory = dishInventory - purchaseDto.quantity;
-        inventories.inventory = newInventory;
-
-        //this function inserts payment history as a successfull payment happend
-        const dateTime = moment().utc();
-        Object.assign(purchaseDto, {
-          transactionDate: dateTime
-        });
-
-        const purchaseData = this.purchaseRepository.create(purchaseDto);
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-          await this.restaurantRepository.save(restaurantDATA);
-          await this.userRepository.save(userDATA);
-          await this.inventoryRepository.save(inventories);
-          await this.purchaseRepository.save(purchaseData);
-          await queryRunner.commitTransaction();
-        }
-        catch (err) {
-          queryRunner.rollbackTransaction();
-        }
-
-        const purchaseResponse = {
-          restaurantName: purchaseData.restaurantName,
-          customerName: purchaseDto.customerName,
-          dishName: purchaseDto.dishName,
-          purchaseQuantity: purchaseDto.quantity,
-          unitPrice: purchaseData.transactionAmount,
-          totalPrice: transectionAmount,
-          availabeInventory: newInventory,
-          restaurantCashBalance: newBalance,
-          userTotalSpentAmount: updatedSpentAmount,
-          transactionDate: purchaseData.transactionDate,
-        }
-        return purchaseResponse
-
-      } catch (err) {
-        return Promise.reject(err);
+    customerId: string,
+    createPurchaseDto: CreatePurchaseDto,
+  ): Promise<ResponseCreatePurchaseDto> {
+    let total = 0;
+    let soldProduct: any;
+    let purchase: Purchase;
+    try {
+      const idQtyPrice = [];
+      const idList = [];
+      const idAndQtys = createPurchaseDto.productList;
+      const customer = await this.purchaseRepository.findACustomer(customerId);
+      if (!customer) {
+        throw new NotFoundException(`Invalid customerId "${customerId}"`);
       }
-    } else {
-      throw new NotFoundException(
-        `The price of this item is, ` + dishPrice + ' please provide the amount instead of ' + purchaseDto.unitPrice,
+      for (const idAndQty of idAndQtys) {
+        const product = await this.productRepository.findAProduct(idAndQty.id);
+
+        if (product) {
+          idList.push(idAndQty.id);
+
+          idQtyPrice.push({
+            id: idAndQty.id,
+            qty: idAndQty.qty,
+            price: product.price,
+          });
+
+          const quantity = idAndQty.qty;
+          const price = await this.priceCalculate(product.price, quantity);
+
+          total += price;
+
+          const availableQty = product.inventory.availableQty;
+
+          if (availableQty === 0) {
+            const updateProductDto = new UpdateProductDto();
+            updateProductDto.inventoryStatus = InventoryStatusEnum.OUTOFSTOCK;
+            await this.productRepository.updateProduct(
+              product.id,
+              updateProductDto,
+            );
+          }
+
+          if (availableQty < idAndQty.qty) {
+            throw new ForbiddenException(
+              {
+                code: 'BAD_REQUEST',
+                message: `Insufficient inventory`,
+                details: [
+                  `${idAndQty.qty} requested item for ${product.name} is not available, available quantity is ${product.inventory.availableQty}`,
+                ],
+                timeStamp: new Date().toISOString(),
+              },
+              'This operation is not permitted',
+            );
+          }
+
+          const newQty = availableQty - Number(idAndQty.qty);
+
+          const updateInventoryDto = new UpdateInventoryDto();
+          updateInventoryDto.availableQty = newQty;
+          await this.inventoryRepository.updateInventory(
+            product.inventory.id,
+            updateInventoryDto,
+          );
+        }
+      }
+
+      const discountAmount = await this.discountCalculate(
+        total,
+        createPurchaseDto.discountInPercentage,
       );
+
+      const vatAmount = await this.vatCalculate(
+        total,
+        createPurchaseDto.vatInPercentage,
+      );
+
+      const payable = await this.payableCalculate(
+        vatAmount,
+        discountAmount,
+        total,
+      );
+
+      const products = await this.productRepository.findProductListByIds(
+        idList,
+      );
+
+      if (products.length > 0) {
+        const purchaseCode = this.utilsService.generatCode(
+          PrefixProductCode.QA,
+          CodeLengthEnum.PURCHASECODELENGTH,
+        );
+
+        const requestCreatePurchaseDto = new RequestCreatePurchaseDto();
+        requestCreatePurchaseDto.createdBy = createPurchaseDto.createdBy;
+        requestCreatePurchaseDto.customerId = customer.id;
+        requestCreatePurchaseDto.purchaseCode = purchaseCode;
+        requestCreatePurchaseDto.status = createPurchaseDto.status;
+        requestCreatePurchaseDto.total = total;
+        requestCreatePurchaseDto.discount = discountAmount;
+        requestCreatePurchaseDto.vat = vatAmount;
+        requestCreatePurchaseDto.payable = payable;
+        purchase = await this.purchaseRepository.createAPurchase(
+          requestCreatePurchaseDto,
+        );
+        soldProduct = await this.purchaseRepository.soldProductInsert(
+          purchase.id,
+          idQtyPrice,
+        );
+      }
+    } catch (err) {
+      return Promise.reject(err);
     }
+    const response = {
+      detail: purchase,
+      products: soldProduct,
+    };
+    return response;
+  }
+
+  async findInvoice(
+    listParametersDto: ListParametersDto,
+  ): Promise<ResponseInvoicesDto> {
+    const rawData = await this.purchaseRepository.findInvoice(
+      listParametersDto,
+    );
+    const items = rawData[0];
+
+    const response = items.map((item) => {
+      const productDetail = item.soldProducts.map((soldProducts) => {
+        return {
+          PRODUCT_CODE: soldProducts.product.code,
+          NAME: soldProducts.product.name,
+          BRAND: soldProducts.product.brandName,
+          PRICE: soldProducts.product.price,
+          QUANTITY: soldProducts.qty,
+        };
+      });
+      return {
+        DATE: item.created,
+        INVOICE_ID: item.purchaseCode,
+        CUSTOMER_NAME: item.customer.name,
+        CUSTOMER_CONTACT: item.customer.contactNumber,
+        CUSTOMER_ADDRESS: item.customer.address,
+        CUSTOMER_TYPE: item.customer.type,
+        PRODUCTS: productDetail,
+        TOTAL: Number(item.total).toFixed(2),
+        DISCOUNT: Number(item.discount).toFixed(2),
+        SUB_TOTAL: Number(item.total - item.discount).toFixed(2),
+        VAT: Number(item.vat).toFixed(2),
+        PAYABLE: Number(item.payable).toFixed(2),
+        STATUS: item.status,
+      };
+    });
+    return response;
+  }
+
+  async priceCalculate(unitPrice: number, qty: number) {
+    return unitPrice * qty;
+  }
+
+  async discountCalculate(discountPercentage: number, price: number) {
+    return (price * discountPercentage) / 100;
+  }
+
+  async vatCalculate(vatPercentage: number, price: number) {
+    return (price * vatPercentage) / 100;
+  }
+
+  async payableCalculate(
+    vatAmount: number,
+    discountAmount: number,
+    total: number,
+  ) {
+    return total + vatAmount - discountAmount;
+  }
+
+  async findACustomer(id: string): Promise<ResponseACustomerDto> {
+    return await this.purchaseRepository.findACustomer(id);
+  }
+
+  async createCustomer(
+    customerDto: CustomerDto,
+  ): Promise<ResponseCreateCustomerDto> {
+    return await this.purchaseRepository.createCustomer(customerDto);
+  }
+
+  async customerStatusUpdate(
+    id: string,
+    updateCustomerTypeDto: UpdateCustomerTypeDto,
+  ) {
+    return await this.purchaseRepository.customerStatusUpdate(
+      id,
+      updateCustomerTypeDto,
+    );
+  }
+
+  async findAllCustomers(
+    listParametersDto: ListParametersDto,
+  ): Promise<ResponseCustomersDto> {
+    const response = await this.purchaseRepository.findAllCustomers(
+      listParametersDto,
+    );
+    const { q, offset, limit, sort } = listParametersDto;
+    const productMeta = this.utilsService.getMetaData(
+      response[1],
+      offset,
+      limit,
+      q,
+      sort,
+    );
+    return {
+      items: response[0],
+      metadata: productMeta,
+    };
   }
 }
-

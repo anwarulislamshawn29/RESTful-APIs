@@ -3,22 +3,19 @@ import { PurchaseService } from './purchase.service';
 import { PurchaseController } from './purchase.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PurchaseRepository } from './purchase.repository';
-import { UserRepository } from './user/user.repository';
-import { RestaurantRepository } from '../restaurents/restaurants.repository';
-import { MenuRepository } from '../restaurents/menu/menu.repository';
-import { InventoryRepository } from '../restaurents/inventory/inventory.repository';
+import { UtilsService } from '../shared/services/utils/utils.service';
+import { ProductRepository } from '../product/product.repository';
+import { InventoryRepository } from '../product/inventory/inventory.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       PurchaseRepository,
-      UserRepository,
-      RestaurantRepository,
-      MenuRepository,
-      InventoryRepository
+      InventoryRepository,
+      ProductRepository,
     ]),
   ],
   controllers: [PurchaseController],
-  providers: [PurchaseService],
+  providers: [PurchaseService, UtilsService],
 })
 export class PurchaseModule { }

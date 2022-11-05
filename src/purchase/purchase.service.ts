@@ -52,7 +52,7 @@ export class PurchaseService {
     await queryRunner.startTransaction();
 
     let total = 0;
-    let soldProduct;
+    let soldProduct: SoldProduct;
     let purchase: Purchase;
     let updateProduct: Product;
     let updateInventory: Inventory;

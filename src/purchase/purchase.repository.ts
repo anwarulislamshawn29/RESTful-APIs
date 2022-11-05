@@ -6,14 +6,12 @@ import {
   Repository,
 } from 'typeorm';
 import { CustomerDto } from './dto/customer.dto';
-import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
 import { ResponseACustomerDto } from './dto/response-a-customer.dto';
 import { ResponseCreateCustomerDto } from './dto/response-create-customer.dto';
 import { ResponseCustomersDto } from './dto/response-customers.dto';
 import { UpdateCustomerTypeDto } from './dto/update-customer-type.dto';
 import { Customer } from './entities/customer.entity';
 import { Purchase } from './entities/purchase.entity';
-import { SoldProduct } from './entities/soldProduct.entity';
 
 @EntityRepository(Purchase)
 export class PurchaseRepository extends Repository<Purchase> {

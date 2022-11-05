@@ -54,7 +54,7 @@ export class PurchaseService {
     let updateProduct: Product;
     let updateInventory: Inventory;
     const soldProductResponse = [];
-    const idQtyPrice = [];
+    const listOfProductIdsProductQtyAndPrices = [];
     const idList = [];
     try {
       const idAndQtys = createPurchaseDto.productList;
@@ -68,7 +68,7 @@ export class PurchaseService {
         if (product) {
           idList.push(idAndQty.id);
 
-          idQtyPrice.push({
+          listOfProductIdsProductQtyAndPrices.push({
             id: idAndQty.id,
             qty: idAndQty.qty,
             price: product.price,
@@ -157,12 +157,12 @@ export class PurchaseService {
         purchase = queryRunner.manager.getRepository(Purchase).create(requestCreatePurchaseDto);
         await queryRunner.manager.save(purchase)
 
-        for (const val of idQtyPrice) {
+        for (const data of listOfProductIdsProductQtyAndPrices) {
           const productObj = {
-            productId: val.id,
+            productId: data.id,
             purchaseId: purchase.id,
-            qty: val.qty,
-            unitPrice: val.price,
+            qty: data.qty,
+            unitPrice: data.price,
           };
           soldProduct = queryRunner.manager.getRepository(SoldProduct).create(productObj);
           await queryRunner.manager.save(soldProduct)
@@ -235,11 +235,12 @@ export class PurchaseService {
     vatAmount: number,
     discountAmount: number,
     total: number,
-  ) {
+  ): Promise<number> {
     return total + vatAmount - discountAmount;
   }
 
-  async findACustomer(id: string): Promise<ResponseACustomerDto> {
+  async findACustomer(id: string)
+    : Promise<ResponseACustomerDto> {
     return await this.purchaseRepository.findACustomer(id);
   }
 
@@ -266,7 +267,7 @@ export class PurchaseService {
       listParametersDto,
     );
     const { q, offset, limit, sort } = listParametersDto;
-    const productMeta = this.utilsService.getMetaData(
+    const meta = this.utilsService.getMetaData(
       response[1],
       offset,
       limit,
@@ -275,7 +276,7 @@ export class PurchaseService {
     );
     return {
       items: response[0],
-      metadata: productMeta,
+      metadata: meta,
     };
   }
 }

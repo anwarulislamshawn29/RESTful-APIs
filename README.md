@@ -58,6 +58,17 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
+## seed
+#create demo products
+$ yarn seed:run --seed ProductSeed
+#create demo inventory
+$ yarn seed:run --seed InventorySeed
+
+## features
+#CRUD for Products/Inventory
+#CRUD for Customer
+#CRUD for Purchase
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).

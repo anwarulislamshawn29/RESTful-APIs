@@ -25,10 +25,6 @@ import { ResponseCreateProductDto } from './dto/response-create-product.dto';
 import { ResponseAProductDto } from './dto/response-a-product.dto';
 import { ResponseProductsDto } from './dto/response-products.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
-import { CreateInventoryDto } from '../inventory/dto/create-inventory.dto';
-import { ResponseCreateInventoryDto } from './dto/response-create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { ResponseUpdateInventoryDto } from './dto/response-update-inventory.dto';
 
 @ApiTags('products')
 @Controller({ path: 'products', version: '1' })

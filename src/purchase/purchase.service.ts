@@ -15,7 +15,7 @@ import { ResponseACustomerDto } from './dto/response-a-customer.dto';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { ProductRepository } from '../product/product.repository';
 import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
-import { UpdateInventoryDto } from '../product/dto/update-inventory.dto';
+import { UpdateInventoryDto } from '../inventory/dto/update-inventory.dto';
 import { InventoryRepository } from '../inventory/inventory.repository';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { InventoryStatusEnum } from '../product/enum/inventory-status.enum';
@@ -24,6 +24,10 @@ import { PrefixProductCode } from '../product/enum/prefix-product-code.enum';
 import { Purchase } from './entities/purchase.entity';
 import { ResponseInvoicesDto } from './dto/response-invoices.dto';
 import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
+import { getConnection } from 'typeorm';
+import { Product } from 'src/product/entities/product.entity';
+import { Inventory } from 'src/inventory/entities/inventory.entity';
+import { SoldProduct } from './entities/soldProduct.entity';
 
 @Injectable()
 export class PurchaseService {
@@ -41,12 +45,21 @@ export class PurchaseService {
     customerId: string,
     createPurchaseDto: CreatePurchaseDto,
   ): Promise<ResponseCreatePurchaseDto> {
+
+    const connection = getConnection();
+    const queryRunner = connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     let total = 0;
-    let soldProduct: any;
+    let soldProduct;
     let purchase: Purchase;
+    let updateProduct: Product;
+    let updateInventory: Inventory;
+    const soldProductResponse = [];
+    const idQtyPrice = [];
+    const idList = [];
     try {
-      const idQtyPrice = [];
-      const idList = [];
       const idAndQtys = createPurchaseDto.productList;
       const customer = await this.purchaseRepository.findACustomer(customerId);
       if (!customer) {
@@ -71,15 +84,6 @@ export class PurchaseService {
 
           const availableQty = product.inventory.availableQty;
 
-          if (availableQty === 0) {
-            const updateProductDto = new UpdateProductDto();
-            updateProductDto.inventoryStatus = InventoryStatusEnum.OUTOFSTOCK;
-            await this.productRepository.updateProduct(
-              product.id,
-              updateProductDto,
-            );
-          }
-
           if (availableQty < idAndQty.qty) {
             throw new ForbiddenException(
               {
@@ -96,12 +100,24 @@ export class PurchaseService {
 
           const newQty = availableQty - Number(idAndQty.qty);
 
+          if (newQty === 0) {
+            const updateProductDto = new UpdateProductDto();
+            updateProductDto.id = product.id
+            updateProductDto.name = product.name
+            updateProductDto.brandName = product.brandName
+            updateProductDto.price = product.price
+            updateProductDto.inventoryStatus = InventoryStatusEnum.OUTOFSTOCK;
+
+            updateProduct = queryRunner.manager.getRepository(Product).create(updateProductDto);
+            await queryRunner.manager.save(updateProduct)
+          }
+
           const updateInventoryDto = new UpdateInventoryDto();
-          updateInventoryDto.availableQty = newQty;
-          await this.inventoryRepository.updateInventory(
-            product.inventory.id,
-            updateInventoryDto,
-          );
+          updateInventoryDto.id = product.inventory.id,
+            updateInventoryDto.availableQty = newQty;
+
+          updateInventory = queryRunner.manager.getRepository(Inventory).create(updateInventoryDto);
+          await queryRunner.manager.save(updateInventory)
         }
       }
 
@@ -140,22 +156,33 @@ export class PurchaseService {
         requestCreatePurchaseDto.discount = discountAmount;
         requestCreatePurchaseDto.vat = vatAmount;
         requestCreatePurchaseDto.payable = payable;
-        purchase = await this.purchaseRepository.createAPurchase(
-          requestCreatePurchaseDto,
-        );
-        soldProduct = await this.purchaseRepository.soldProductInsert(
-          purchase.id,
-          idQtyPrice,
-        );
+
+        purchase = queryRunner.manager.getRepository(Purchase).create(requestCreatePurchaseDto);
+        await queryRunner.manager.save(purchase)
+
+        for (const val of idQtyPrice) {
+          const productObj = {
+            productId: val.id,
+            purchaseId: purchase.id,
+            qty: val.qty,
+            unitPrice: val.price,
+          };
+          soldProduct = queryRunner.manager.getRepository(SoldProduct).create(productObj);
+          await queryRunner.manager.save(soldProduct)
+          soldProductResponse.push(productObj)
+        }
       }
+      await queryRunner.commitTransaction()
     } catch (err) {
-      return Promise.reject(err);
+      // since we have errors let's rollback changes we made
+      await queryRunner.rollbackTransaction()
+    } finally {
+      await queryRunner.release()
     }
-    const response = {
+    return {
       detail: purchase,
-      products: soldProduct,
+      products: soldProductResponse,
     };
-    return response;
   }
 
   async findInvoice(

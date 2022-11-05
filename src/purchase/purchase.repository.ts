@@ -49,52 +49,7 @@ export class PurchaseRepository extends Repository<Purchase> {
     };
     return result;
   }
-  async createAPurchase(
-    requestCreatePurchaseDto: RequestCreatePurchaseDto,
-  ): Promise<Purchase> {
-    let purchase: Purchase;
-    try {
-      purchase = await getConnection()
-        .createQueryBuilder()
-        .insert()
-        .into(Purchase)
-        .values(requestCreatePurchaseDto)
-        .returning('*')
-        .execute()
-        .then((response) => response.raw[0]);
-      return purchase;
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-  async soldProductInsert(purchaseId: string, idQtyPrice: any[]) {
-    const response = [];
-    try {
-      for (const val of idQtyPrice) {
-        const soldProduct = {
-          productId: val.id,
-          purchaseId,
-          qty: val.qty,
-          unitPrice: val.price,
-        };
 
-        const soldItem = await getConnection()
-          .createQueryBuilder()
-          .insert()
-          .into(SoldProduct)
-          .values(soldProduct)
-          .returning('*')
-          .execute()
-          .then((res) => res.raw[0]);
-
-        response.push(soldItem);
-      }
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    return response;
-  }
   async findACustomer(id: string): Promise<ResponseACustomerDto> {
     let result: ResponseACustomerDto;
     try {

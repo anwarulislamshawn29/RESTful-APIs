@@ -1,4 +1,27 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateInventoryDto } from './create-inventory.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsUUID } from 'class-validator';
 
-export class UpdateInventoryDto extends PartialType(CreateInventoryDto) {}
+export class UpdateInventoryDto {
+
+  @ApiProperty({
+    type: 'uuid',
+    description: 'Inventory Id.',
+  })
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Total quantity.',
+  })
+  @IsOptional()
+  totalQty?: number;
+
+  @ApiProperty({
+    type: String,
+    description: 'Total quantity.',
+  })
+  @IsOptional()
+  availableQty?: number;
+}

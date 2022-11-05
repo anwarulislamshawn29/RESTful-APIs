@@ -1,8 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { InventoryStatusEnum } from '../enum/inventory-status.enum';
 
 export class UpdateProductDto {
+  @ApiProperty({
+    type: 'uuid',
+    description: 'Product Id.',
+  })
+  @IsUUID()
+  id: string;
+
   @ApiProperty({
     type: String,
     description: 'Product name.',

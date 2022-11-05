@@ -11,6 +11,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ResponseCreateProductDto } from './dto/response-create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+import { InventoryStatusEnum } from './enum/inventory-status.enum';
 
 @EntityRepository(Product)
 export class ProductRepository extends Repository<Product> {
@@ -63,8 +64,8 @@ export class ProductRepository extends Repository<Product> {
         .where({
           id: id,
         });
-      products.andWhere('inventory.availableQty >= :value', {
-        value: 0,
+      products.andWhere('LOWER(product.inventoryStatus) LiKE :value', {
+        value: InventoryStatusEnum.AVAILABLE,
       });
       return await products.getOne();
     } catch (err) {

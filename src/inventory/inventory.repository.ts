@@ -1,7 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { EntityRepository, getConnection, getManager, Repository } from 'typeorm';
 import { ResponseCreateInventoryDto } from '../product/dto/response-create-inventory.dto';
-import { UpdateInventoryDto } from '../product/dto/update-inventory.dto';
+import { UpdateInventoryDto } from '../inventory/dto/update-inventory.dto';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { Inventory } from './entities/inventory.entity';
 

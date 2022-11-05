@@ -58,7 +58,7 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
-## seed
+## Seed
 
 ```bash
 #create demo products
@@ -68,7 +68,19 @@ $ yarn seed:run --seed ProductSeed
 $ yarn seed:run --seed InventorySeed
 ```
 
-## features
+## Database migration
+
+```bash
+#Run migration
+
+$ yarn run typeorm migration:run
+
+#Revert migration
+
+$ yarn run typeorm migration:revert
+```
+
+## Features
 
 ```bash
 

@@ -59,7 +59,7 @@ export class PurchaseController {
   })
   @ApiOperation({
     description:
-      'This API performs, Process a user purchasing a dish from a restaurant, handling all relevant data changes in an atomic transaction.',
+      'This API performs to create customer by inserting customer detail.',
   })
   @ApiBody({ type: CustomerDto })
   @Post('/customer')

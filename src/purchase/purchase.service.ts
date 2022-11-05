@@ -16,7 +16,7 @@ import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { ProductRepository } from '../product/product.repository';
 import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
 import { UpdateInventoryDto } from '../product/dto/update-inventory.dto';
-import { InventoryRepository } from '../product/inventory/inventory.repository';
+import { InventoryRepository } from '../inventory/inventory.repository';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { InventoryStatusEnum } from '../product/enum/inventory-status.enum';
 import { CodeLengthEnum } from '../shared/enum/code-length.enum';

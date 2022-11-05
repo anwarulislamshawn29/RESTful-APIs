@@ -3,10 +3,11 @@ import { InventoryService } from './inventory.service';
 import { InventoryController } from './inventory.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InventoryRepository } from './inventory.repository';
+import { ProductRepository } from '../product/product.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InventoryRepository])],
+  imports: [TypeOrmModule.forFeature([InventoryRepository, ProductRepository])],
   controllers: [InventoryController],
   providers: [InventoryService, InventoryRepository],
 })
-export class InventoryModule {}
+export class InventoryModule { }

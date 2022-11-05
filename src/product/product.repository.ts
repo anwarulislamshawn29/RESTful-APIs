@@ -3,17 +3,13 @@ import { ListParametersDto } from '../shared/dto/list-parameters.dto';
 import {
   EntityRepository,
   getConnection,
-  getManager,
   getRepository,
   In,
   Repository,
 } from 'typeorm';
-import { CreateInventoryDto } from './inventory/dto/create-inventory.dto';
 import { CreateProductDto } from './dto/create-product.dto';
-import { ResponseCreateInventoryDto } from './dto/response-create-inventory.dto';
 import { ResponseCreateProductDto } from './dto/response-create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Inventory } from './inventory/entities/inventory.entity';
 import { Product } from './entities/product.entity';
 
 @EntityRepository(Product)
@@ -74,35 +70,6 @@ export class ProductRepository extends Repository<Product> {
     } catch (err) {
       return Promise.reject(err);
     }
-  }
-
-  async findInventoryByProductId(productId: string) {
-    let inventory: Inventory;
-    try {
-      inventory = await getManager()
-        .createQueryBuilder(Inventory, 'inventory')
-        .where('inventory.productId = :productId', { productId })
-        .getOne();
-    } catch (err) {
-      return Promise.reject(err);
-    }
-    return inventory;
-  }
-
-  async findInventoryById(id: string) {
-    let inventory: Inventory;
-    try {
-      inventory = await getManager()
-        .createQueryBuilder(Inventory, 'inventory')
-        .where('inventory.id = :id', { id })
-        .getOne();
-      if (!inventory) {
-        throw new NotFoundException(`No inventory found with id "${id}"`);
-      }
-    } catch (err) {
-      return Promise.reject(err);
-    }
-    return inventory;
   }
 
   async findProductList(
@@ -186,34 +153,7 @@ export class ProductRepository extends Repository<Product> {
     }
     return updatedProduct;
   }
-  async createInventory(
-    createInventoryDto: CreateInventoryDto,
-  ): Promise<ResponseCreateInventoryDto> {
-    const inventory = {
-      totalQty: createInventoryDto.totalQty,
-      availableQty: createInventoryDto.totalQty,
-      createdBy: createInventoryDto.createdBy,
-      productId: createInventoryDto.productId,
-    };
-    let inventories: any;
-    try {
-      inventories = await getConnection()
-        .createQueryBuilder()
-        .insert()
-        .into(Inventory)
-        .values(inventory)
-        .execute()
-        .then((response) => response.raw[0]);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-    const result = {
-      productId: inventories.id,
-      created: inventories.created,
-      updated: inventories.updated,
-    };
-    return result;
-  }
+
   async deleteProduct(id: string) {
     let result;
     try {

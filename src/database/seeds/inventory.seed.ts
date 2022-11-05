@@ -1,7 +1,7 @@
 import { Factory, Seeder } from 'typeorm-seeding';
 import { Connection, getRepository } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
-import { Inventory } from '../../product/inventory/entities/inventory.entity';
+import { Inventory } from '../../inventory/entities/inventory.entity';
 
 export default class InventorySeed implements Seeder {
   public async run(factory: Factory, connection: Connection): Promise<any> {

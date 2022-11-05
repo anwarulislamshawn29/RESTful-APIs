@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Inventory } from '../inventory/entities/inventory.entity';
+import { Inventory } from '../../inventory/entities/inventory.entity';
 import {
   Column,
   CreateDateColumn,

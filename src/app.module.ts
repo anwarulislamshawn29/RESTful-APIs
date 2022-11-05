@@ -6,7 +6,7 @@ import { ApiConfigService } from './shared/services/api-config.service';
 import { SharedModule } from './shared/shared.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { ProductModule } from './product/product.module';
-import { InventoryModule } from './product/inventory/inventory.module';
+import { InventoryModule } from './inventory/inventory.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,4 +25,4 @@ import { InventoryModule } from './product/inventory/inventory.module';
   ],
   controllers: [],
 })
-export class AppModule {}
+export class AppModule { }

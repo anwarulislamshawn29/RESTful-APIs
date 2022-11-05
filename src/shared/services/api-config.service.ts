@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Inventory } from '../../product/inventory/entities/inventory.entity';
+import { Inventory } from '../../inventory/entities/inventory.entity';
 import { Product } from '../../product/entities/product.entity';
 import { Customer } from '../../purchase/entities/customer.entity';
 import { SoldProduct } from '../../purchase/entities/soldProduct.entity';

@@ -25,7 +25,7 @@ import { ResponseCreateProductDto } from './dto/response-create-product.dto';
 import { ResponseAProductDto } from './dto/response-a-product.dto';
 import { ResponseProductsDto } from './dto/response-products.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
-import { CreateInventoryDto } from './inventory/dto/create-inventory.dto';
+import { CreateInventoryDto } from '../inventory/dto/create-inventory.dto';
 import { ResponseCreateInventoryDto } from './dto/response-create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { ResponseUpdateInventoryDto } from './dto/response-update-inventory.dto';
@@ -46,22 +46,6 @@ export class ProductController {
     @Body() createProductDto: CreateProductDto,
   ): Promise<ResponseCreateProductDto> {
     return this.productsService.create(createProductDto);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @ApiOperation({
-    description: 'This API performs to create inventory of a product',
-  })
-  @ApiBody({ type: CreateProductDto })
-  @ApiCreatedResponse({
-    description: 'Successfully created',
-    type: ResponseCreateProductDto,
-  })
-  @Post('/inventory')
-  createInventory(
-    @Body() createInventoryDto: CreateInventoryDto,
-  ): Promise<ResponseCreateInventoryDto> {
-    return this.productsService.createInventory(createInventoryDto);
   }
 
   @Get()
@@ -95,19 +79,6 @@ export class ProductController {
     @Body() updateProductDto: UpdateProductDto,
   ): Promise<ResponseAProductDto> {
     return this.productsService.update(id, updateProductDto);
-  }
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @ApiOkResponse({
-    description: 'Success',
-    type: ResponseUpdateInventoryDto,
-  })
-  @Patch('/inventory/:id')
-  updateInventory(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateInventoryDto: UpdateInventoryDto,
-  ): Promise<ResponseUpdateInventoryDto> {
-    return this.productsService.updateInventory(id, updateInventoryDto);
   }
 
   @Delete(':id')

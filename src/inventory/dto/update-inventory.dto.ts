@@ -4,7 +4,8 @@ import { IsOptional, IsUUID } from 'class-validator';
 export class UpdateInventoryDto {
 
   @ApiProperty({
-    type: 'uuid',
+    type: 'string',
+    format: 'uuid',
     description: 'Inventory Id.',
   })
   @IsUUID()

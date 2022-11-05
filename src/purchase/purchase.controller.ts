@@ -82,7 +82,7 @@ export class PurchaseController {
   customerStatusUpdate(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCustomerTypeDto: UpdateCustomerTypeDto,
-  ): Promise<any> {
+  ): Promise<CustomerDto> {
     return this.purchaseService.customerStatusUpdate(id, updateCustomerTypeDto);
   }
 

@@ -28,7 +28,6 @@ import { ResponseCreateCustomerDto } from './dto/response-create-customer.dto';
 import { ResponseCustomersDto } from './dto/response-customers.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
 import { ResponseACustomerDto } from './dto/response-a-customer.dto';
-import { Any } from 'typeorm';
 import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
 
 @ApiTags('Purchase')
@@ -92,7 +91,7 @@ export class PurchaseController {
     type: ResponseCustomersDto,
   })
   @ApiOperation({
-    description: 'This API performs, to update customer information.',
+    description: 'This API performs, to get customer list.',
   })
   @ApiBody({ type: CustomerDto })
   @Get('/customers')

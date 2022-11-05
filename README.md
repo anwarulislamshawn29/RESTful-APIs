@@ -59,15 +59,25 @@ $ yarn run test:cov
 ```
 
 ## seed
+
+```bash
 #create demo products
 $ yarn seed:run --seed ProductSeed
+
 #create demo inventory
 $ yarn seed:run --seed InventorySeed
+```
 
 ## features
+
+```bash
+
 #CRUD for Products/Inventory
+
 #CRUD for Customer
+
 #CRUD for Purchase
+```
 
 ## Support
 

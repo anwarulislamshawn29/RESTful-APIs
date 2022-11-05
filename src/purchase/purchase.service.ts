@@ -16,7 +16,6 @@ import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { ProductRepository } from '../product/product.repository';
 import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
 import { UpdateInventoryDto } from '../inventory/dto/update-inventory.dto';
-import { InventoryRepository } from '../inventory/inventory.repository';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { InventoryStatusEnum } from '../product/enum/inventory-status.enum';
 import { CodeLengthEnum } from '../shared/enum/code-length.enum';
@@ -36,8 +35,6 @@ export class PurchaseService {
     private purchaseRepository: PurchaseRepository,
     @InjectRepository(ProductRepository)
     private productRepository: ProductRepository,
-    @InjectRepository(InventoryRepository)
-    private inventoryRepository: InventoryRepository,
     private readonly utilsService: UtilsService,
   ) { }
 

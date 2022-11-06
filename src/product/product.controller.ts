@@ -50,7 +50,7 @@ export class ProductController {
     type: ResponseProductsDto,
   })
   @UseInterceptors(ClassSerializerInterceptor)
-  findAll(@Query() listParametersDto: ListParametersDto) {
+  findAll(@Query() listParametersDto: ListParametersDto): Promise<ResponseProductsDto> {
     return this.productsService.findAll(listParametersDto);
   }
 
@@ -60,7 +60,7 @@ export class ProductController {
   })
   @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ResponseAProductDto> {
     return this.productsService.findAProduct(id);
   }
 

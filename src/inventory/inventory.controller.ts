@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
@@ -16,9 +17,11 @@ import { CreateProductDto } from '../product/dto/create-product.dto';
 import { ResponseCreateProductDto } from '../product/dto/response-create-product.dto';
 import { ResponseCreateInventoryDto } from '../product/dto/response-create-inventory.dto';
 import { ResponseUpdateInventoryDto } from '../product/dto/response-update-inventory.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('inventory')
 @Controller({ path: 'inventory', version: '1' })
+@UseGuards(AuthGuard())
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) { }
 

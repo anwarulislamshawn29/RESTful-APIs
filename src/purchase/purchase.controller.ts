@@ -11,6 +11,7 @@ import {
   Get,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UseGuards,
 } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import {
@@ -29,9 +30,11 @@ import { ResponseCustomersDto } from './dto/response-customers.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
 import { ResponseACustomerDto } from './dto/response-a-customer.dto';
 import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Purchase')
 @Controller({ path: 'purchase', version: '1' })
+@UseGuards(AuthGuard())
 export class PurchaseController {
   constructor(private readonly purchaseService: PurchaseService) { }
   @ApiOkResponse({

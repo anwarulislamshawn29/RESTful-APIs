@@ -41,7 +41,6 @@ export class ProductController {
     type: ResponseCreateProductDto,
   })
   @Post()
-  @UseGuards(AuthGuard())
   create(
     @Body() createProductDto: CreateProductDto,
   ): Promise<ResponseCreateProductDto> {

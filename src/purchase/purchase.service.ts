@@ -27,6 +27,8 @@ import { getConnection } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Inventory } from 'src/inventory/entities/inventory.entity';
 import { SoldProduct } from './entities/soldProduct.entity';
+import { InvoiceFormat } from './interface/invoice-format.interface';
+import { ProductDetailInterface } from './interface/product-detail.interface';
 
 @Injectable()
 export class PurchaseService {
@@ -192,15 +194,17 @@ export class PurchaseService {
 
     const response = items.map((item) => {
       const productDetail = item.soldProducts.map((soldProducts) => {
-        return {
+        const details: ProductDetailInterface = {
           PRODUCT_CODE: soldProducts.product.code,
           NAME: soldProducts.product.name,
           BRAND: soldProducts.product.brandName,
           PRICE: soldProducts.product.price,
           QUANTITY: soldProducts.qty,
         };
+        return details
       });
-      return {
+      const invoice: InvoiceFormat =
+      {
         DATE: item.created,
         INVOICE_ID: item.purchaseCode,
         CUSTOMER_NAME: item.customer.name,
@@ -215,6 +219,7 @@ export class PurchaseService {
         PAYABLE: Number(item.payable).toFixed(2),
         STATUS: item.status,
       };
+      return invoice;
     });
     return response;
   }

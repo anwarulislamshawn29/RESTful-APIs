@@ -7,6 +7,8 @@ import { SharedModule } from './shared/shared.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { ProductModule } from './product/product.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { AuthModule } from './auth/auth.module';
+import { AccessModule } from './access/access.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,6 +24,8 @@ import { InventoryModule } from './inventory/inventory.module';
     PurchaseModule,
     ProductModule,
     InventoryModule,
+    AuthModule,
+    AccessModule,
   ],
   controllers: [],
 })

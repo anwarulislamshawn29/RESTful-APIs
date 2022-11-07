@@ -1,10 +1,9 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
 import { UtilsService } from '../shared/services/utils/utils.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ResponseCreateProductDto } from './dto/response-create-product.dto';
-import { ResponseProductsDto } from './dto/response-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { ProductRepository } from './product.repository';

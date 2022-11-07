@@ -47,7 +47,4 @@ export class Inventory {
   @JoinColumn()
   product: Product;
 
-  constructor(partial: Partial<Inventory>) {
-    Object.assign(this, partial);
-  }
 }

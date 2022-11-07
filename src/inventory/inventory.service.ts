@@ -19,10 +19,9 @@ export class InventoryService {
     id: string,
     updateInventoryDto: UpdateInventoryDto,
   ): Promise<ResponseUpdateInventoryDto> {
-    const inventory = await this.inventoryRepository.findInventoryById(id);
+    await this.inventoryRepository.findInventoryById(id);
     if (
-      inventory.availableQty > updateInventoryDto.totalQty ||
-      updateInventoryDto.totalQty < 0
+      updateInventoryDto.totalQty < 0 || updateInventoryDto.availableQty < 0
     ) {
       throw new BadRequestException(`Invalid input value"`);
     }

@@ -11,6 +11,7 @@ import {
   Get,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UseGuards,
 } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import {
@@ -28,11 +29,12 @@ import { ResponseCreateCustomerDto } from './dto/response-create-customer.dto';
 import { ResponseCustomersDto } from './dto/response-customers.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
 import { ResponseACustomerDto } from './dto/response-a-customer.dto';
-import { Any } from 'typeorm';
 import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Purchase')
 @Controller({ path: 'purchase', version: '1' })
+@UseGuards(AuthGuard())
 export class PurchaseController {
   constructor(private readonly purchaseService: PurchaseService) { }
   @ApiOkResponse({
@@ -59,7 +61,7 @@ export class PurchaseController {
   })
   @ApiOperation({
     description:
-      'This API performs, Process a user purchasing a dish from a restaurant, handling all relevant data changes in an atomic transaction.',
+      'This API performs to create customer by inserting customer detail.',
   })
   @ApiBody({ type: CustomerDto })
   @Post('/customer')
@@ -83,7 +85,7 @@ export class PurchaseController {
   customerStatusUpdate(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCustomerTypeDto: UpdateCustomerTypeDto,
-  ): Promise<any> {
+  ): Promise<CustomerDto> {
     return this.purchaseService.customerStatusUpdate(id, updateCustomerTypeDto);
   }
 
@@ -92,7 +94,7 @@ export class PurchaseController {
     type: ResponseCustomersDto,
   })
   @ApiOperation({
-    description: 'This API performs, to update customer information.',
+    description: 'This API performs, to get customer list.',
   })
   @ApiBody({ type: CustomerDto })
   @Get('/customers')

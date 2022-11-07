@@ -5,15 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PurchaseRepository } from './purchase.repository';
 import { UtilsService } from '../shared/services/utils/utils.service';
 import { ProductRepository } from '../product/product.repository';
-import { InventoryRepository } from '../inventory/inventory.repository';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       PurchaseRepository,
-      InventoryRepository,
       ProductRepository,
     ]),
+    AuthModule
   ],
   controllers: [PurchaseController],
   providers: [PurchaseService, UtilsService],

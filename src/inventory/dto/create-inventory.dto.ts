@@ -3,7 +3,8 @@ import { IsDefined, IsNumber, IsUUID } from 'class-validator';
 
 export class CreateInventoryDto {
   @ApiProperty({
-    type: 'uuid',
+    type: 'string',
+    format: 'uuid',
     description: 'Product Id.',
   })
   @IsDefined()

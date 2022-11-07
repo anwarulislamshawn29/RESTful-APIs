@@ -6,6 +6,7 @@ import { Product } from '../../product/entities/product.entity';
 import { Customer } from '../../purchase/entities/customer.entity';
 import { SoldProduct } from '../../purchase/entities/soldProduct.entity';
 import { Purchase } from '../../purchase/entities/purchase.entity';
+import { AuthCredentials } from '../../access/entities/auth-credentials.entity';
 
 @Injectable()
 export class ApiConfigService {
@@ -13,7 +14,7 @@ export class ApiConfigService {
 
   get typeOrmConfig(): TypeOrmModuleOptions {
     const migrations = [__dirname + '/../database/migrations/*{.ts,.js}'];
-    const entities = [Product, Inventory, Purchase, Customer, SoldProduct];
+    const entities = [Product, AuthCredentials, Inventory, Purchase, Customer, SoldProduct];
     const isProduction = this.configService.get('STAGE') === 'prod';
     return {
       ssl: isProduction,

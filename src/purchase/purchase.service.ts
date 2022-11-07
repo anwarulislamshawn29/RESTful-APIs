@@ -16,7 +16,6 @@ import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { ProductRepository } from '../product/product.repository';
 import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
 import { UpdateInventoryDto } from '../inventory/dto/update-inventory.dto';
-import { InventoryRepository } from '../inventory/inventory.repository';
 import { UpdateProductDto } from '../product/dto/update-product.dto';
 import { InventoryStatusEnum } from '../product/enum/inventory-status.enum';
 import { CodeLengthEnum } from '../shared/enum/code-length.enum';
@@ -28,6 +27,8 @@ import { getConnection } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { Inventory } from 'src/inventory/entities/inventory.entity';
 import { SoldProduct } from './entities/soldProduct.entity';
+import { InvoiceFormat } from './interface/invoice-format.interface';
+import { ProductDetailInterface } from './interface/product-detail.interface';
 
 @Injectable()
 export class PurchaseService {
@@ -36,8 +37,6 @@ export class PurchaseService {
     private purchaseRepository: PurchaseRepository,
     @InjectRepository(ProductRepository)
     private productRepository: ProductRepository,
-    @InjectRepository(InventoryRepository)
-    private inventoryRepository: InventoryRepository,
     private readonly utilsService: UtilsService,
   ) { }
 
@@ -52,12 +51,12 @@ export class PurchaseService {
     await queryRunner.startTransaction();
 
     let total = 0;
-    let soldProduct;
+    let soldProduct: SoldProduct;
     let purchase: Purchase;
     let updateProduct: Product;
     let updateInventory: Inventory;
     const soldProductResponse = [];
-    const idQtyPrice = [];
+    const listOfProductIdsProductQtyAndPrices = [];
     const idList = [];
     try {
       const idAndQtys = createPurchaseDto.productList;
@@ -71,7 +70,7 @@ export class PurchaseService {
         if (product) {
           idList.push(idAndQty.id);
 
-          idQtyPrice.push({
+          listOfProductIdsProductQtyAndPrices.push({
             id: idAndQty.id,
             qty: idAndQty.qty,
             price: product.price,
@@ -160,12 +159,12 @@ export class PurchaseService {
         purchase = queryRunner.manager.getRepository(Purchase).create(requestCreatePurchaseDto);
         await queryRunner.manager.save(purchase)
 
-        for (const val of idQtyPrice) {
+        for (const data of listOfProductIdsProductQtyAndPrices) {
           const productObj = {
-            productId: val.id,
+            productId: data.id,
             purchaseId: purchase.id,
-            qty: val.qty,
-            unitPrice: val.price,
+            qty: data.qty,
+            unitPrice: data.price,
           };
           soldProduct = queryRunner.manager.getRepository(SoldProduct).create(productObj);
           await queryRunner.manager.save(soldProduct)
@@ -175,6 +174,7 @@ export class PurchaseService {
       await queryRunner.commitTransaction()
     } catch (err) {
       // since we have errors let's rollback changes we made
+      console.log(`Error ${err}`)
       await queryRunner.rollbackTransaction()
     } finally {
       await queryRunner.release()
@@ -195,15 +195,17 @@ export class PurchaseService {
 
     const response = items.map((item) => {
       const productDetail = item.soldProducts.map((soldProducts) => {
-        return {
+        const details: ProductDetailInterface = {
           PRODUCT_CODE: soldProducts.product.code,
           NAME: soldProducts.product.name,
           BRAND: soldProducts.product.brandName,
           PRICE: soldProducts.product.price,
           QUANTITY: soldProducts.qty,
         };
+        return details
       });
-      return {
+      const invoice: InvoiceFormat =
+      {
         DATE: item.created,
         INVOICE_ID: item.purchaseCode,
         CUSTOMER_NAME: item.customer.name,
@@ -218,6 +220,7 @@ export class PurchaseService {
         PAYABLE: Number(item.payable).toFixed(2),
         STATUS: item.status,
       };
+      return invoice;
     });
     return response;
   }
@@ -238,11 +241,12 @@ export class PurchaseService {
     vatAmount: number,
     discountAmount: number,
     total: number,
-  ) {
+  ): Promise<number> {
     return total + vatAmount - discountAmount;
   }
 
-  async findACustomer(id: string): Promise<ResponseACustomerDto> {
+  async findACustomer(id: string)
+    : Promise<ResponseACustomerDto> {
     return await this.purchaseRepository.findACustomer(id);
   }
 
@@ -269,7 +273,7 @@ export class PurchaseService {
       listParametersDto,
     );
     const { q, offset, limit, sort } = listParametersDto;
-    const productMeta = this.utilsService.getMetaData(
+    const meta = this.utilsService.getMetaData(
       response[1],
       offset,
       limit,
@@ -278,7 +282,7 @@ export class PurchaseService {
     );
     return {
       items: response[0],
-      metadata: productMeta,
+      metadata: meta,
     };
   }
 }

@@ -58,6 +58,39 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
+## Seed
+
+```bash
+#create demo products
+$ yarn seed:run --seed ProductSeed
+
+#create demo inventory
+$ yarn seed:run --seed InventorySeed
+```
+
+## Database migration
+
+```bash
+#Run migration
+
+$ yarn run typeorm migration:run
+
+#Revert migration
+
+$ yarn run typeorm migration:revert
+```
+
+## Features
+
+```bash
+
+#CRUD for Products/Inventory
+
+#CRUD for Customer
+
+#CRUD for Purchase
+```
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).

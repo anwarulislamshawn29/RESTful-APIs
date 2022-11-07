@@ -48,7 +48,7 @@ export class ProductRepository extends Repository<Product> {
           id: In(Ids),
         });
       products.andWhere('product.inventoryStatus= :value', {
-        value: 'available',
+        value: InventoryStatusEnum.AVAILABLE,
       });
       return await products.getMany();
     } catch (err) {

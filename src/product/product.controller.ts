@@ -25,9 +25,12 @@ import { ResponseCreateProductDto } from './dto/response-create-product.dto';
 import { ResponseAProductDto } from './dto/response-a-product.dto';
 import { ResponseProductsDto } from './dto/response-products.dto';
 import { ListParametersDto } from '../shared/dto/list-parameters.dto';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('products')
 @Controller({ path: 'products', version: '1' })
+@UseGuards(AuthGuard())
 export class ProductController {
   constructor(private readonly productsService: ProductService) { }
   @UseInterceptors(ClassSerializerInterceptor)

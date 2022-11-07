@@ -43,7 +43,7 @@ export class InventoryRepository extends Repository<Inventory> {
       const inventory = await this.findOne(id);
       if (!inventory) {
         throw new NotFoundException(
-          `No inventory found with inventoryId "${id}"`,
+          `No inventory found with id "${id}"`,
         );
       }
       const { availableQty } = updateInventoryDto;

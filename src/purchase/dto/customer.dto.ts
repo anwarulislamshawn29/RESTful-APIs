@@ -1,8 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, IsEnum, IsUUID } from 'class-validator';
+import { IsDefined, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { CustomerTypeEnum } from '../enum/customer-type.enum';
 
 export class CustomerDto {
+
+  @ApiProperty({
+    type: 'string',
+    format: 'uuid',
+    description: 'Customer table primery key.',
+  })
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @ApiProperty({
     type: String,
     example: 'Mr. xyz',

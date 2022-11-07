@@ -1,11 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
-import { Customer } from '../entities/customer.entity';
+import { CustomerDto } from './customer.dto';
 
-export class ResponseCreateCustomerDto extends OmitType(Customer, [
+export class ResponseCreateCustomerDto extends OmitType(CustomerDto, [
   'createdBy',
-  'created',
-  'updated',
-  'purchases',
-  'updatedBy',
-  'deletedAt',
-] as const) {}
+] as const) { }

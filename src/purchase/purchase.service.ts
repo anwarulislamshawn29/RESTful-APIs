@@ -174,6 +174,7 @@ export class PurchaseService {
       await queryRunner.commitTransaction()
     } catch (err) {
       // since we have errors let's rollback changes we made
+      console.log(`Error ${err}`)
       await queryRunner.rollbackTransaction()
     } finally {
       await queryRunner.release()

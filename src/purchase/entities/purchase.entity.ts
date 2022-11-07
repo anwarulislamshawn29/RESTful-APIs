@@ -95,7 +95,4 @@ export class Purchase {
   @OneToMany(() => SoldProduct, (soldProduct) => soldProduct.purchase)
   soldProducts: SoldProduct[];
 
-  constructor(partial: Partial<Purchase>) {
-    Object.assign(this, partial);
-  }
 }

@@ -48,7 +48,7 @@ export class PurchaseController {
   @ApiBody({ type: CreatePurchaseDto })
   @Post()
   @HttpCode(HttpStatus.OK)
-  purchaes(
+  purchase(
     @Body() createPurchaseDto: CreatePurchaseDto,
     @Query('customerId', ParseUUIDPipe) customerId: string,
   ): Promise<ResponseCreatePurchaseDto> {

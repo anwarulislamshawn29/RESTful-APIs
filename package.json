@@ -92,7 +92,7 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.10.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.8.4"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -106,7 +106,22 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.(t|j)s",
+      "!**/*.repository.(t|j)s",
+      "!**/*.dto.(t|j)s",
+      "!**/*.entity.(t|j)s",
+      "!**/*.enum.(t|j)s"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/app.module.ts",
+      "<rootDir>/main.ts",
+      "<rootDir>/cors.ts",
+      "<rootDir>/config.schema.ts",
+      "<rootDir>/database/migrations",
+      "<rootDir>/database/seeds",
+      "<rootDir>/auth",
+      "<rootDir>/shared"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

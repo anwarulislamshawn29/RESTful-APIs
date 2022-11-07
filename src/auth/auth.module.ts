@@ -12,7 +12,6 @@ import * as secret from "./keys/jwt-key.json"
 
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-
     JwtModule.register({
       secret: secret.key,
       signOptions: {

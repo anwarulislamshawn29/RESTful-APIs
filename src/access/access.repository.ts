@@ -3,9 +3,9 @@ import {
   Repository,
 } from 'typeorm';
 import { AuthCredentials } from './entities/auth-credentials.entity';
-import { AuthCredentialsDto } from 'src/auth/dto/auth-credentials.dto';
+import { AuthCredentialsDto } from '../auth/dto/auth-credentials.dto';
 import * as bcrypt from 'bcrypt';
-import { ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 
 @EntityRepository(AuthCredentials)
 export class AccessRepository extends Repository<AuthCredentials> {

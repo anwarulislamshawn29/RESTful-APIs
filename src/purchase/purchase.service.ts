@@ -100,11 +100,8 @@ export class PurchaseService {
           const newQty = availableQty - Number(idAndQty.qty);
 
           if (newQty === 0) {
-            const updateProductDto = new UpdateProductDto();
-            updateProductDto.id = product.id
-            updateProductDto.name = product.name
-            updateProductDto.brandName = product.brandName
-            updateProductDto.price = product.price
+            let updateProductDto = new UpdateProductDto();
+            updateProductDto = { ...product }
             updateProductDto.inventoryStatus = InventoryStatusEnum.OUTOFSTOCK;
 
             updateProduct = queryRunner.manager.getRepository(Product).create(updateProductDto);

@@ -171,7 +171,6 @@ export class PurchaseService {
       await queryRunner.commitTransaction()
     } catch (err) {
       // since we have errors let's rollback changes we made
-      console.log(`Error ${err}`)
       await queryRunner.rollbackTransaction()
     } finally {
       await queryRunner.release()
@@ -191,13 +190,13 @@ export class PurchaseService {
     const items = rawData[0];
 
     const response = items.map((item) => {
-      const productDetail = item.soldProducts.map((soldProducts) => {
+      const productDetail = item.soldProducts.map((soldProduct) => {
         const details: ProductDetailInterface = {
-          PRODUCT_CODE: soldProducts.product.code,
-          NAME: soldProducts.product.name,
-          BRAND: soldProducts.product.brandName,
-          PRICE: soldProducts.product.price,
-          QUANTITY: soldProducts.qty,
+          PRODUCT_CODE: soldProduct.product.code,
+          NAME: soldProduct.product.name,
+          BRAND: soldProduct.product.brandName,
+          PRICE: soldProduct.product.price,
+          QUANTITY: soldProduct.qty,
         };
         return details
       });

@@ -12,6 +12,8 @@ import { ResponseCustomersDto } from './dto/response-customers.dto';
 import { UpdateCustomerTypeDto } from './dto/update-customer-type.dto';
 import { Customer } from './entities/customer.entity';
 import { Purchase } from './entities/purchase.entity';
+import { RequestCreatePurchaseDto } from './dto/request-create-purchase.dto';
+import { SoldProduct } from './entities/soldProduct.entity';
 
 @EntityRepository(Purchase)
 export class PurchaseRepository extends Repository<Purchase> {
@@ -46,6 +48,44 @@ export class PurchaseRepository extends Repository<Purchase> {
       type: newCustomer.type,
     };
     return result;
+  }
+
+  async createPurchase(
+    requestCreatePurchaseDto: RequestCreatePurchaseDto,
+  ): Promise<Purchase> {
+    let newPurchase: any;
+    try {
+      newPurchase = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Purchase)
+        .values(requestCreatePurchaseDto)
+        .returning('*')
+        .execute()
+        .then((response) => response.raw[0]);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return newPurchase;
+  }
+
+  async createSoldProduct(
+    soldProducData: any
+  ): Promise<SoldProduct> {
+    let newSoldProduct: any;
+    try {
+      newSoldProduct = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(SoldProduct)
+        .values(soldProducData)
+        .returning('*')
+        .execute()
+        .then((response) => response.raw[0]);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+    return newSoldProduct;
   }
 
   async findACustomer(id: string): Promise<ResponseACustomerDto> {

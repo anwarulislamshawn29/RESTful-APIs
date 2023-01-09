@@ -39,7 +39,7 @@ export class PurchaseService {
     private readonly utilsService: UtilsService,
   ) { }
 
-  async purchase(
+  async createPurchase(
     customerId: string,
     createPurchaseDto: CreatePurchaseDto,
   ): Promise<ResponseCreatePurchaseDto> {

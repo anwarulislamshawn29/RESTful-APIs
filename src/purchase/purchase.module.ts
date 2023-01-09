@@ -6,12 +6,14 @@ import { PurchaseRepository } from './purchase.repository';
 import { UtilsService } from '../shared/services/utils/utils.service';
 import { ProductRepository } from '../product/product.repository';
 import { AuthModule } from '../auth/auth.module';
+import { InventoryRepository } from '../inventory/inventory.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       PurchaseRepository,
       ProductRepository,
+      InventoryRepository
     ]),
     AuthModule
   ],

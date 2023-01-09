@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID } from 'class-validator';
 
 export class RequestBodyProductDto {
   @ApiProperty({
@@ -6,6 +7,7 @@ export class RequestBodyProductDto {
     format: 'uuid',
     description: 'Product table primary key',
   })
+  @IsUUID()
   id: string;
 
   @ApiProperty({

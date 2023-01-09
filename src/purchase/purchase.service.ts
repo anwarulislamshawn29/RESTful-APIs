@@ -23,12 +23,9 @@ import { PrefixProductCode } from '../product/enum/prefix-product-code.enum';
 import { Purchase } from './entities/purchase.entity';
 import { ResponseInvoicesDto } from './dto/response-invoices.dto';
 import { ResponseCreatePurchaseDto } from './dto/response-create-purchase.dto';
-import { getConnection } from 'typeorm';
-import { Product } from '../product/entities/product.entity';
-import { Inventory } from '../inventory/entities/inventory.entity';
-import { SoldProduct } from './entities/soldProduct.entity';
 import { InvoiceFormat } from './interface/invoice-format.interface';
 import { ProductDetailInterface } from './interface/product-detail.interface';
+import { InventoryRepository } from 'src/inventory/inventory.repository';
 
 @Injectable()
 export class PurchaseService {
@@ -37,59 +34,52 @@ export class PurchaseService {
     private purchaseRepository: PurchaseRepository,
     @InjectRepository(ProductRepository)
     private productRepository: ProductRepository,
+    @InjectRepository(InventoryRepository)
+    private inventoryRepository: InventoryRepository,
     private readonly utilsService: UtilsService,
   ) { }
 
-  async purchase(
+  async createPurchase(
     customerId: string,
     createPurchaseDto: CreatePurchaseDto,
   ): Promise<ResponseCreatePurchaseDto> {
-
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     let total = 0;
-    let soldProduct: SoldProduct;
     let purchase: Purchase;
-    let updateProduct: Product;
-    let updateInventory: Inventory;
     const soldProductResponse = [];
     const listOfProductIdsProductQtyAndPrices = [];
     const idList = [];
     try {
-      const idAndQtys = createPurchaseDto.productList;
+      const productIdAndQtys = createPurchaseDto.productList;
       const customer = await this.purchaseRepository.findACustomer(customerId);
       if (!customer) {
         throw new NotFoundException(`Invalid customerId "${customerId}"`);
       }
-      for (const idAndQty of idAndQtys) {
-        const product = await this.productRepository.findAProduct(idAndQty.id);
+      for (const productIdAndQty of productIdAndQtys) {
+        const product = await this.productRepository.findAProduct(productIdAndQty.id);
 
         if (product) {
-          idList.push(idAndQty.id);
+          idList.push(productIdAndQty.id);
 
           listOfProductIdsProductQtyAndPrices.push({
-            id: idAndQty.id,
-            qty: idAndQty.qty,
+            id: productIdAndQty.id,
+            qty: productIdAndQty.qty,
             price: product.price,
           });
 
-          const quantity = idAndQty.qty;
+          const quantity = productIdAndQty.qty;
           const price = await this.priceCalculate(product.price, quantity);
 
           total += price;
 
           const availableQty = product.inventory.availableQty;
 
-          if (availableQty < idAndQty.qty) {
+          if (availableQty < productIdAndQty.qty) {
             throw new ForbiddenException(
               {
                 code: 'BAD_REQUEST',
                 message: `Insufficient inventory`,
                 details: [
-                  `${idAndQty.qty} requested item for ${product.name} is not available, available quantity is ${product.inventory.availableQty}`,
+                  `${productIdAndQty.qty} requested item for ${product.name} is not available, available quantity is ${product.inventory.availableQty}`,
                 ],
                 timeStamp: new Date().toISOString(),
               },
@@ -97,23 +87,21 @@ export class PurchaseService {
             );
           }
 
-          const newQty = availableQty - Number(idAndQty.qty);
+          const newQty = availableQty - Number(productIdAndQty.qty);
 
           if (newQty === 0) {
             let updateProductDto = new UpdateProductDto();
             updateProductDto = { ...product }
             updateProductDto.inventoryStatus = InventoryStatusEnum.OUTOFSTOCK;
 
-            updateProduct = queryRunner.manager.getRepository(Product).create(updateProductDto);
-            await queryRunner.manager.save(updateProduct)
+            await this.productRepository.updateProduct(updateProductDto.id, updateProductDto)
           }
 
           const updateInventoryDto = new UpdateInventoryDto();
           updateInventoryDto.id = product.inventory.id,
             updateInventoryDto.availableQty = newQty;
 
-          updateInventory = queryRunner.manager.getRepository(Inventory).create(updateInventoryDto);
-          await queryRunner.manager.save(updateInventory)
+          await this.inventoryRepository.updateInventory(updateInventoryDto.id, updateInventoryDto)
         }
       }
 
@@ -153,8 +141,7 @@ export class PurchaseService {
         requestCreatePurchaseDto.vat = vatAmount;
         requestCreatePurchaseDto.payable = payable;
 
-        purchase = queryRunner.manager.getRepository(Purchase).create(requestCreatePurchaseDto);
-        await queryRunner.manager.save(purchase)
+        purchase = await this.purchaseRepository.createPurchase(requestCreatePurchaseDto)
 
         for (const data of listOfProductIdsProductQtyAndPrices) {
           const productObj = {
@@ -163,18 +150,12 @@ export class PurchaseService {
             qty: data.qty,
             unitPrice: data.price,
           };
-          soldProduct = queryRunner.manager.getRepository(SoldProduct).create(productObj);
-          await queryRunner.manager.save(soldProduct)
+          await this.purchaseRepository.createSoldProduct(productObj)
           soldProductResponse.push(productObj)
         }
       }
-      await queryRunner.commitTransaction()
     } catch (err) {
-      // since we have errors let's rollback changes we made
       console.log(`Error ${err}`)
-      await queryRunner.rollbackTransaction()
-    } finally {
-      await queryRunner.release()
     }
     return {
       detail: purchase,

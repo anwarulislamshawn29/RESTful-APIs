@@ -52,7 +52,7 @@ export class PurchaseController {
     @Body() createPurchaseDto: CreatePurchaseDto,
     @Query('customerId', ParseUUIDPipe) customerId: string,
   ): Promise<ResponseCreatePurchaseDto> {
-    return this.purchaseService.purchase(customerId, createPurchaseDto);
+    return this.purchaseService.createPurchase(customerId, createPurchaseDto);
   }
 
   @ApiCreatedResponse({
